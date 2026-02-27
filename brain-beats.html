@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Beats</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f0f1a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Start Screen */
+  #start-screen {
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+  }
+
+  #start-screen h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+
+  #start-screen p {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+  }
+
+  #start-btn, #retry-btn {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    color: #fff;
+    border: none;
+    padding: 14px 48px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  #start-btn:hover, #retry-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.5);
+  }
+
+  #start-btn:active, #retry-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Game Screen */
+  #game-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.4s ease;
+  }
+
+  #level-display {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    transition: opacity 0.3s ease;
+  }
+
+  #status {
+    font-size: 1rem;
+    color: #94a3b8;
+    height: 28px;
+    margin-bottom: 16px;
+    transition: opacity 0.2s ease;
+  }
+
+  #status.success {
+    color: #4ade80;
+    font-weight: 700;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .pad {
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 110px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+    outline: none;
+  }
+
+  .pad::after {
+    content: '';
+    position: absolute;
+    top: 18%;
+    left: 22%;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0) 100%);
+    transition: background 0.15s ease;
+  }
+
+  .pad.lit {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  .pad.lit::after {
+    background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 70%);
+  }
+
+  .pad[data-index="0"] {
+    background: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+  }
+  .pad[data-index="0"].lit {
+    box-shadow: 0 0 32px rgba(239, 68, 68, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  .pad[data-index="1"] {
+    background: #f97316;
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.3);
+  }
+  .pad[data-index="1"].lit {
+    box-shadow: 0 0 32px rgba(249, 115, 22, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  .pad[data-index="2"] {
+    background: #eab308;
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.3);
+  }
+  .pad[data-index="2"].lit {
+    box-shadow: 0 0 32px rgba(234, 179, 8, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  .pad[data-index="3"] {
+    background: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+  }
+  .pad[data-index="3"].lit {
+    box-shadow: 0 0 32px rgba(34, 197, 94, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  .pad[data-index="4"] {
+    background: #3b82f6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+  }
+  .pad[data-index="4"].lit {
+    box-shadow: 0 0 32px rgba(59, 130, 246, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  .pad[data-index="5"] {
+    background: #8b5cf6;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+  }
+  .pad[data-index="5"].lit {
+    box-shadow: 0 0 32px rgba(139, 92, 246, 0.7), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  /* Game Over Overlay */
+  #gameover {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 15, 26, 0.88);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+    z-index: 10;
+  }
+
+  #gameover h2 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  #gameover p {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    margin-bottom: 32px;
+  }
+
+  #gameover p span {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  [hidden] { display: none !important; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="start-screen">
+    <h1>Brain Beats</h1>
+    <p>Most people can't get past Level 10. Think you've got the memory for it?</p>
+    <button id="start-btn">Prove It</button>
+  </div>
+
+  <div id="game-screen" hidden>
+    <div id="level-display">Level 1</div>
+    <div id="status"></div>
+    <div id="grid">
+      <button class="pad" data-index="0"></button>
+      <button class="pad" data-index="1"></button>
+      <button class="pad" data-index="2"></button>
+      <button class="pad" data-index="3"></button>
+      <button class="pad" data-index="4"></button>
+      <button class="pad" data-index="5"></button>
+    </div>
+  </div>
+
+  <div id="gameover" hidden>
+    <h2>Oof, So Close!</h2>
+    <p id="gameover-msg">You made it to <span id="final-level"></span></p>
+    <button id="retry-btn">Try Again, I Dare You</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  // --- DOM refs ---
+  const startScreen = document.getElementById('start-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const gameoverScreen = document.getElementById('gameover');
+  const levelDisplay = document.getElementById('level-display');
+  const statusEl = document.getElementById('status');
+  const finalLevelEl = document.getElementById('final-level');
+  const startBtn = document.getElementById('start-btn');
+  const retryBtn = document.getElementById('retry-btn');
+  const pads = document.querySelectorAll('.pad');
+
+  // --- Sound config ---
+  const TONES = [
+    { freq: 523, detune: 3 },   // C5  Red
+    { freq: 587, detune: 2.5 }, // D5  Orange
+    { freq: 659, detune: 3 },   // E5  Yellow
+    { freq: 784, detune: 2 },   // G5  Green
+    { freq: 880, detune: 2.5 }, // A5  Blue
+    { freq: 1047, detune: 3 },  // C6  Violet
+  ];
+
+  // --- Audio ---
+  let audioCtx = null;
+  let masterGain = null;
+
+  function ensureAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.5;
+    masterGain.connect(audioCtx.destination);
+  }
+
+  function playTone(index) {
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    const cfg = TONES[index];
+
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.3, t + 0.02);
+    g.gain.setValueAtTime(0.3, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    g.connect(masterGain);
+
+    const osc1 = audioCtx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.value = cfg.freq;
+    osc1.connect(g);
+    osc1.start(t);
+    osc1.stop(t + 0.35);
+
+    const osc2 = audioCtx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = cfg.freq + cfg.detune;
+    osc2.connect(g);
+    osc2.start(t);
+    osc2.stop(t + 0.35);
+  }
+
+  // --- Game state ---
+  let sequence = [];
+  let playerPos = 0;
+  let level = 1;
+  let isPlayingSequence = false;
+  let gameActive = false;
+
+  // --- Light up a pad ---
+  function lightPad(index, duration) {
+    const pad = pads[index];
+    pad.classList.add('lit');
+    setTimeout(() => pad.classList.remove('lit'), duration || 300);
+  }
+
+  // --- Play the full sequence ---
+  function playSequence() {
+    isPlayingSequence = true;
+    statusEl.textContent = 'Pay attention...';
+    let i = 0;
+    function next() {
+      if (i >= sequence.length) {
+        isPlayingSequence = false;
+        statusEl.textContent = 'OK, your turn. No pressure.';
+        return;
+      }
+      lightPad(sequence[i], 300);
+      playTone(sequence[i]);
+      i++;
+      setTimeout(next, 500);
+    }
+    next();
+  }
+
+  // --- Start a new level ---
+  function startLevel() {
+    sequence.push(Math.floor(Math.random() * 6));
+    playerPos = 0;
+    levelDisplay.textContent = 'Level ' + level;
+    statusEl.textContent = '';
+    setTimeout(playSequence, 800);
+  }
+
+  // --- Handle player input ---
+  function handlePadPress(index) {
+    if (!gameActive || isPlayingSequence) return;
+
+    lightPad(index, 200);
+    playTone(index);
+
+    if (sequence[playerPos] === index) {
+      playerPos++;
+      if (playerPos === sequence.length) {
+        // Level complete
+        gameActive = false; // briefly lock input
+        const cheers = ['Yesss!', 'OK you\'re kinda good', 'Wait, really?!', 'No way!', 'Slay!', 'Iconic!', 'Obsessed!', 'Big brain energy!'];
+        statusEl.textContent = cheers[Math.floor(Math.random() * cheers.length)];
+        statusEl.classList.add('success');
+        setTimeout(() => {
+          statusEl.classList.remove('success');
+          level++;
+          gameActive = true;
+          startLevel();
+        }, 600);
+      }
+    } else {
+      // Wrong — game over
+      gameActive = false;
+      finalLevelEl.textContent = 'Level ' + level;
+      const goTitle = document.querySelector('#gameover h2');
+      const goMsg = document.getElementById('gameover-msg');
+      if (level <= 2) {
+        goTitle.textContent = 'Bruh.';
+        goMsg.innerHTML = 'You made it to <span>' + 'Level ' + level + '</span>. We believe in you... kind of.';
+      } else if (level <= 5) {
+        goTitle.textContent = 'Oof, So Close!';
+        goMsg.innerHTML = 'You made it to <span>' + 'Level ' + level + '</span>. Not bad, but you can do better.';
+      } else if (level <= 9) {
+        goTitle.textContent = 'OK Impressive!';
+        goMsg.innerHTML = '<span>Level ' + level + '</span>?! Your memory is lowkey elite.';
+      } else {
+        goTitle.textContent = 'Actual Legend!';
+        goMsg.innerHTML = '<span>Level ' + level + '</span>. Most people never make it here. Screenshot this immediately.';
+      }
+      setTimeout(() => {
+        gameoverScreen.hidden = false;
+      }, 400);
+    }
+  }
+
+  // --- Pad event listeners (pointer for unified touch/mouse) ---
+  pads.forEach(pad => {
+    pad.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handlePadPress(parseInt(pad.dataset.index, 10));
+    });
+  });
+
+  // --- Start / Retry ---
+  function startGame() {
+    ensureAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    sequence = [];
+    playerPos = 0;
+    level = 1;
+    gameActive = true;
+    isPlayingSequence = false;
+    startScreen.hidden = true;
+    gameoverScreen.hidden = true;
+    gameScreen.hidden = false;
+    statusEl.textContent = '';
+    statusEl.classList.remove('success');
+    startLevel();
+  }
+
+  startBtn.addEventListener('click', startGame);
+  retryBtn.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>
